@@ -388,8 +388,8 @@ def best_run(checkpoint_path):
 
 def main():
 
-    ood_detection = False
-    external_data = False
+    ood_detection = True
+    external_data = True
 
     # Clearing memory in GPU
     gc.collect()
@@ -622,7 +622,8 @@ def main():
         print(">>>Model Trained on dataset:",data_args.train_file.split("/")[-1])
         print(">>>Model detecting OOD on dataset:",data_args.ood_test_file.split("/")[-1])
 
-        # Back bone model
+        # Uncomment this part to visualize the plots
+        
         # model_name = "Roberta-base"
         # if external_data:
         #     auroc_file_name = "AUROC_WDC_News" + model_name

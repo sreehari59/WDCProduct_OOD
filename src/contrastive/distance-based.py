@@ -505,9 +505,6 @@ class DataTrainingArguments:
             "help": "An optional path to save the results(confidence score) of the model."
         },
     )
-    ood_external_data: Optional[str] = field(
-        default=None, metadata={"help": "Use the external ood detection dataset(NewsGroup20)"}
-    )
     def __post_init__(self):
         if self.train_file is None and self.validation_file is None:
             raise ValueError("Need a training file.")
@@ -688,7 +685,7 @@ def main():
     transformers.utils.logging.enable_default_handler()
     transformers.utils.logging.enable_explicit_format()
 
-    external_data = data_args.ood_external_data
+    external_data = True
     contrastive_model = False
     dataset_name = "WDC Product Test Data"
     if external_data:
@@ -798,6 +795,10 @@ def main():
     # labels = labels[scores_idx]
     label_list = labels.numpy()
     label_list = label_list * -1
+    if external_data:
+        labels = i.get("labels")
+        labels = torch.where(labels >= 0, torch.tensor(0), torch.tensor(-1))
+        labels = labels.numpy() + 1
     print("label_list: ",label_list)
     score_list = mahal_score.numpy()
 
@@ -817,6 +818,9 @@ def main():
     print(">>>Model Trained on dataset:",data_args.train_file.split("/")[-1])
     print(">>>Model detecting OOD on dataset:",data_args.ood_test_file.split("/")[-1])
 
+
+    # Uncomment this part to visualize the plots
+    
     # if contrastive_model:
     #     model_name= "Contrastive"
     # else:
@@ -845,33 +849,6 @@ def main():
     #     plot_density(label_list,  score_list, dataset_name+" Distance Approach",
     #                     plot_file_name, data_args)
 
-    # mahal_df = pd.DataFrame(values.tolist())
-    # mahal_df['mean_value'] = mahal_df.mean(axis=1)
-    # mahal_df['min_value'] = mahal_df.min(axis=1)
-    # mahal_df['max_value'] = mahal_df.max(axis=1)
-    # mahal_df['label'] = labels.tolist()
-    # mahal_df['label'] = [0 if i==0 else 1 for i in mahal_df['label']]
-    # print(mahal_df)   
-    # mahal_df.to_csv("mahal_df.csv")  
-
-    # y_pred = [1 if i>=0.71 else 0 for i in mahal_df['mean_value']]
-    # y_test = mahal_df['label']
-    # result(y_test ,y_pred)     
-
-    # y_pred = [1 if i>=0.50 else 0 for i in mahal_df['min_value']]   
-    # y_test = mahal_df['label']
-    # result(y_test ,y_pred) 
-    
-    # values = test_buffer.get("embedding")
-    # labels = test_buffer.get("label") 
-    # print("values: ",values.shape)
-    # print("labels: ",labels.shape) 
-
-    # df = pd.DataFrame(values.tolist())
-    # df['label'] = labels.tolist()
-    # df['label'] = [0 if i==0 else 1 for i in df['label']]
-    # df.to_csv("CLS_embedding_for_classifier.csv")  
-    # print(df)
 
 if __name__ == "__main__":
     # The first dataset is the dataset on which the model was trained and the second the ood detection test file
@@ -879,65 +856,3 @@ if __name__ == "__main__":
     main()
 
 
-
-# def accuracy():
-#     mahalanobis_dist_tuple = detector(x.to(device))
-
-
-
-    # def predict_features(self, x: Tensor) -> Tensor:
-    #     """
-    #     Calculates mahalanobis distance directly on features.
-    #     ODIN preprocessing will not be applied.
-
-    #     :param x: features, as given by the model.
-    #     """
-    #     # say our x is [50, 500] that is the 50 is the batch size and 500 is the when we take the output from the logits
-    #     features = x.view(x.size(0), x.size(1), -1) # features size will become [50,500,1]
-    #     features = torch.mean(features, 2) # Taking the mean across the 2 new features size is [50,500]
-    #     noise_gaussian_scores_list = []
-    #     mahal_dist_list = []
-        
-    #     for clazz in range(self.n_classes): # n_classes is 500. Iterate thorugh all the classes
-    #         # features.data is of shape [50,500].  self.mu is of shape [500,500] but self.mu[clazz] or self.mu[0] is of size [500] 
-              # that is [500] or self.mu is the mean of each of the class
-    #         # centered_features = features.data - self.mu[clazz] gives centered_features with size [50,500]
-    #         # Note in the above line the 500 is when we take the output from the logits
-    #         centered_features = features.data - self.mu[clazz] 
-    #         # centered_features is of size [50,500] self.precision is of size [500,500]
-    #         # torch.mm([50,500] and  [500,500]) gives a [50,500] tensor
-    #         # [50,500] multiplied by centered_features.t() of size [500,50] gives [50,50]
-    #         # Now taking the diagonal elements give [50] so term_gau is of size [50]
-    #         term_gau = (
-    #             -0.5
-    #             * torch.mm(
-    #                 torch.mm(centered_features, self.precision), centered_features.t()
-    #             ).diag()
-    #         )
-    #         without_gau = torch.mm(torch.mm(centered_features, self.precision), centered_features.t()
-    #             ).diag()
-            
-    #         # term_gau is of size [50] and term_gau.view(-1, 1) makes it into torch.Size([50, 1])
-    #         # noise_gaussian_scores_list is a list, the term_gau.view(-1, 1) is appended to the list for every iteration
-    #         # what term_gau is computing is the mahalnobis distance of a point to the respective class
-    #         noise_gaussian_scores_list.append(term_gau.view(-1, 1))
-    #         mahal_dist_list.append(without_gau.view(-1, 1))
-
-    #     # At the end of the for loop the term_gau.view(-1, 1) will be executed 500 time sor to the number of classes
-    #     # so the length of the noise_gaussian_scores_list is going to be 
-    #     # the noise_gaussian_score is going to be a tensor of sze [50, 500] so row 0 or [1,500] would mean the 
-    #     # the mahalnobis distance of the row 0 data to all the 500 classes
-    #     noise_gaussian_score = torch.cat(noise_gaussian_scores_list, 1)
-
-    #     # Now the below line of code will take the max value that is saw for row 0 it will take the max value from the 500 values
-    #     # Here a point to be noted is that the term_gau is multiplied by a -0.5. The multiplication with -0.5 is done in order
-    #     # to add noise to make it able to handle adversiral attacks. In that case the values in the row 0 is all going to be negative
-    #     # Now taking the max value would mean say [ -5.,  -6.,  -7.,  -8.,  -9.], here the max value is going to be -5
-    #     # so basically in the paper they are taking the distance of the new point to the closest class. Now we know the distance of the new point
-    #     # to the closest class, if that value is very big that would mean the point to the closest class itself is very big and so it could
-    #     # be out of distribution
-    #     noise_gaussian_score = torch.max(noise_gaussian_score, dim=1).values
-
-    #     mahal_dist = torch.cat(mahal_dist_list, 1)
-
-    #     return noise_gaussian_score

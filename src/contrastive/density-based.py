@@ -405,8 +405,8 @@ def main():
     gc.collect()
     torch.cuda.empty_cache()
     
-    external_data = False
-    contrastive_model = True
+    external_data = True
+    contrastive_model = False
     dataset_name = "NewsGroup20 dataset"
     if external_data:
         dataset_name = "WDC Product Test Data"
@@ -575,29 +575,30 @@ def main():
 
     # cls_embed_df(cls_token_buffer,data_args,"CLS_token_"+model_name)
 
+    # Uncomment this part to visualize the plots
     
-    if external_data:
-        auroc_file_name = "AUROC_WDC_News" + model_name
-        plot_file_name = "Prob_Density_WDC_News_" + model_name
+    # if external_data:
+    #     auroc_file_name = "AUROC_WDC_News" + model_name
+    #     plot_file_name = "Prob_Density_WDC_News_" + model_name
 
-        auroc_plot(label_list,  score_list,"AUROC WDC Product & NewsGroup20 Density Approach",
-                    auroc_file_name, data_args)
-        plot_density(label_list,  score_list, "WDC Product & NewsGroup20 Density Approach",
-                        plot_file_name, data_args)
-    else:
-        dataset_name = raw_datasets["ood_test"]
-        if "valid" in dataset_name:
-            dataset_name = dataset_name.split("/")[-1].split(".")[0]
-        else:
-            dataset_name = dataset_name.split("/")[-1].split("_")[1]
+    #     auroc_plot(label_list,  score_list,"AUROC WDC Product & NewsGroup20 Density Approach",
+    #                 auroc_file_name, data_args)
+    #     plot_density(label_list,  score_list, "WDC Product & NewsGroup20 Density Approach",
+    #                     plot_file_name, data_args)
+    # else:
+    #     dataset_name = raw_datasets["ood_test"]
+    #     if "valid" in dataset_name:
+    #         dataset_name = dataset_name.split("/")[-1].split(".")[0]
+    #     else:
+    #         dataset_name = dataset_name.split("/")[-1].split("_")[1]
 
-        auroc_file_name = "AUROC_WDC_" + dataset_name + "_" +  model_name
-        plot_file_name = "Prob_Density_WDC_" + dataset_name + "_" + model_name
+    #     auroc_file_name = "AUROC_WDC_" + dataset_name + "_" +  model_name
+    #     plot_file_name = "Prob_Density_WDC_" + dataset_name + "_" + model_name
 
-        auroc_plot(label_list,  score_list,"AUROC "+dataset_name+" Density Approach",
-                    auroc_file_name, data_args)
-        plot_density(label_list,  score_list, dataset_name+" Density Approach",
-                        plot_file_name, data_args)
+    #     auroc_plot(label_list,  score_list,"AUROC "+dataset_name+" Density Approach",
+    #                 auroc_file_name, data_args)
+    #     plot_density(label_list,  score_list, dataset_name+" Density Approach",
+    #                     plot_file_name, data_args)
 
 
 
